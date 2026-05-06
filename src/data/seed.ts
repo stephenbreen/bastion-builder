@@ -121,6 +121,7 @@ export function seedManor(): Bastion {
     strongholdLevel: 1,
     treasury: 0,
     inGameWeek: 1,
+    domainRenown: 0,
     facilities,
     hirelings,
     log: [],

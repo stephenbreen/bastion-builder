@@ -16,7 +16,9 @@ export const useBastionStore = create<BastionStore>()(
     }),
     {
       name: 'bastion-planner',
-      version: 1,
+      // Bump on schema changes so dev state from older versions is discarded
+      // rather than rehydrated with missing fields.
+      version: 2,
     },
   ),
 )

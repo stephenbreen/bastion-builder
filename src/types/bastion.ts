@@ -23,6 +23,10 @@ export interface Bastion {
   strongholdLevel: 1 | 2 | 3 | 4 | 5
   treasury: number
   inGameWeek: number
+  // Domain placeholders held on Bastion in Phase 1 — they migrate to a
+  // dedicated Domain entity in Phase 3. Field names match the eventual home.
+  domainRenown: number
+  lastIntrigueEndedWeek?: number
   facilities: Facility[]
   hirelings: Hireling[]
   log: LogEntry[]
