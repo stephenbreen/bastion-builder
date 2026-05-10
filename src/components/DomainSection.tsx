@@ -1,5 +1,7 @@
 'use client';
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 import { computeDomainSkills } from '../lib/domain'
 import { formatWeeksSinceIntrigue, weeksSinceIntrigue } from '../lib/format'
 import { usePlayerView } from '../lib/view-mode'
@@ -34,14 +36,17 @@ function defenseTone(value: number): string {
 }
 
 export function DomainSection() {
-  const domain = useBastionStore((s) => s.bastions[s.activeBastionId].domain)
-  const week = useBastionStore((s) => s.bastions[s.activeBastionId].inGameWeek)
-  const facilities = useBastionStore((s) => s.bastions[s.activeBastionId].facilities)
-  const setDomainSize = useBastionStore((s) => s.setDomainSize)
-  const adjustDomainDefense = useBastionStore((s) => s.adjustDomainDefense)
-  const beginIntrigue = useBastionStore((s) => s.beginIntrigue)
-  const endIntrigue = useBastionStore((s) => s.endIntrigue)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const { setDomainSize, adjustDomainDefense, beginIntrigue, endIntrigue } =
+    useBastionMutation(bastionId)
   const isPlayer = usePlayerView()
+
+  if (!bastion) return null
+
+  const domain = bastion.domain
+  const week = bastion.inGameWeek
+  const facilities = bastion.facilities
 
   const breakdowns = computeDomainSkills(domain, facilities)
   const intrigueDuration = 4 + domain.size

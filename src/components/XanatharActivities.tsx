@@ -4,7 +4,9 @@ import {
   XANATHAR_ACTIVITIES,
   type XanatharActivity,
 } from '../data/xanathar-activities'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 import { usePlayerView } from '../lib/view-mode'
 
 interface RecordFormProps {
@@ -13,7 +15,8 @@ interface RecordFormProps {
 }
 
 function RecordForm({ activity, onClose }: RecordFormProps) {
-  const recordActivity = useBastionStore((s) => s.recordActivity)
+  const bastionId = useActiveBastionId()
+  const { recordActivity } = useBastionMutation(bastionId)
   const [roller, setRoller] = useState('')
   const [outcome, setOutcome] = useState('')
   const [rollComplication, setRollComplication] = useState(false)
@@ -178,7 +181,8 @@ function ActivityCard({ activity }: ActivityCardProps) {
 }
 
 function RecentActivityFeed() {
-  const log = useBastionStore((s) => s.bastions[s.activeBastionId].log)
+  const bastionId = useActiveBastionId()
+  const log = useBastion(bastionId).data?.state.log ?? []
   const recent = log
     .filter((e) => e.type === 'xanathar-activity')
     .slice(-5)

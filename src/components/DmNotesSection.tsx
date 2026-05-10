@@ -1,12 +1,16 @@
 'use client';
 import { useEffect, useRef, useState } from 'react'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 import { usePlayerView } from '../lib/view-mode'
 
 export function DmNotesSection() {
   const isPlayer = usePlayerView()
-  const dmNotes = useBastionStore((s) => s.bastions[s.activeBastionId].dmNotes ?? '')
-  const setDmNotes = useBastionStore((s) => s.setDmNotes)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const dmNotes = bastion?.dmNotes ?? ''
+  const { setDmNotes } = useBastionMutation(bastionId)
 
   const [draft, setDraft] = useState(dmNotes)
   const [open, setOpen] = useState(false)

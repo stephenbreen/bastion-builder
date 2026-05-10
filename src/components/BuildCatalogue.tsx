@@ -5,7 +5,10 @@ import {
   getSizeCost,
   type CatalogueEntry,
 } from '../data/facility-catalogue'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
+import { useUiStore } from '../store/useUiStore'
 import { formatGp } from '../lib/format'
 import type { Size } from '../types'
 
@@ -88,12 +91,12 @@ export function BuildCatalogue() {
   const [error, setError] = useState<string | null>(null)
   const [flashId, setFlashId] = useState<string | null>(null)
 
-  const treasury = useBastionStore((s) => s.bastions[s.activeBastionId].treasury)
-  const customs = useBastionStore(
-    (s) => s.bastions[s.activeBastionId].customCatalogueEntries,
-  )
-  const startBuild = useBastionStore((s) => s.startBuild)
-  const selectFacility = useBastionStore((s) => s.selectFacility)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const treasury = bastion?.treasury ?? 0
+  const customs = bastion?.customCatalogueEntries
+  const { startBuild } = useBastionMutation(bastionId)
+  const selectFacility = useUiStore((s) => s.selectFacility)
 
   const entries = useMemo<CatalogueEntry[]>(
     () => [...BASIC_FACILITIES_CATALOGUE, ...(customs ?? [])],

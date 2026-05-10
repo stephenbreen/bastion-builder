@@ -13,11 +13,9 @@ import { PCsSection } from './components/PCsSection'
 import { ProjectsSection } from './components/ProjectsSection'
 import { WeeklyCostsSection } from './components/WeeklyCostsSection'
 import { XanatharActivities } from './components/XanatharActivities'
-import {
-  THEME_NAMES,
-  useBastionStore,
-  type ThemeName,
-} from './store/useBastionStore'
+import { THEME_NAMES, useUiStore, type ThemeName } from './store/useUiStore'
+import { useActiveBastionId } from './hooks/useActiveBastionId'
+import { useBastionMutation } from './hooks/useBastionMutation'
 import { useKeyboardShortcuts } from './lib/keyboard-shortcuts'
 import { usePlayerView } from './lib/view-mode'
 
@@ -28,8 +26,8 @@ const THEME_LABELS: Record<ThemeName, string> = {
 }
 
 function ThemeToggle() {
-  const theme = useBastionStore((s) => s.theme)
-  const setTheme = useBastionStore((s) => s.setTheme)
+  const theme = useUiStore((s) => s.theme)
+  const setTheme = useUiStore((s) => s.setTheme)
 
   return (
     <div
@@ -60,8 +58,8 @@ function ThemeToggle() {
 }
 
 function ViewToggle() {
-  const viewMode = useBastionStore((s) => s.viewMode)
-  const setViewMode = useBastionStore((s) => s.setViewMode)
+  const viewMode = useUiStore((s) => s.viewMode)
+  const setViewMode = useUiStore((s) => s.setViewMode)
   const isPlayer = viewMode === 'player'
 
   return (
@@ -92,12 +90,12 @@ function PlayerViewBanner() {
 }
 
 export default function App() {
-  const reset = useBastionStore((s) => s.reset)
-  const theme = useBastionStore((s) => s.theme)
-  const advanceWeek = useBastionStore((s) => s.advanceWeek)
-  const setViewMode = useBastionStore((s) => s.setViewMode)
-  const clearSelection = useBastionStore((s) => s.clearSelection)
-  const viewMode = useBastionStore((s) => s.viewMode)
+  const bastionId = useActiveBastionId()
+  const mutation = useBastionMutation(bastionId)
+  const theme = useUiStore((s) => s.theme)
+  const setViewMode = useUiStore((s) => s.setViewMode)
+  const clearSelection = useUiStore((s) => s.clearSelection)
+  const viewMode = useUiStore((s) => s.viewMode)
   const isPlayer = usePlayerView()
 
   useEffect(() => {
@@ -106,7 +104,7 @@ export default function App() {
 
   useKeyboardShortcuts({
     // A only does something in DM view — players can't tick the world clock.
-    onAdvanceWeek: isPlayer ? undefined : advanceWeek,
+    onAdvanceWeek: isPlayer ? undefined : mutation.advanceWeek,
     onTogglePlayerView: () => setViewMode(viewMode === 'player' ? 'dm' : 'player'),
     onClearSelection: clearSelection,
   })
@@ -115,7 +113,7 @@ export default function App() {
     const ok = window.confirm(
       'Reset to the seeded manor? This will discard all current state, including builds, treasury edits, and log entries. Export first if you want to keep it.',
     )
-    if (ok) reset()
+    if (ok) mutation.resetToSeed()
   }
 
   return (

@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 import { computeWeeklyTotal } from '../lib/costs'
 import { formatGp } from '../lib/format'
 import { usePlayerView } from '../lib/view-mode'
@@ -66,16 +68,18 @@ function CostField({ label, value, onChange, detail, computed }: CostFieldProps)
 
 export function WeeklyCostsSection() {
   const isPlayer = usePlayerView()
-  const bastion = useBastionStore((s) => s.bastions[s.activeBastionId])
-  const setWeeklyCost = useBastionStore((s) => s.setWeeklyCost)
-  const setUpkeepNotes = useBastionStore((s) => s.setUpkeepNotes)
-
-  const breakdown = computeWeeklyTotal(bastion)
-  const wouldGoNegative = bastion.treasury - breakdown.total < 0
-  const upkeepNotes = bastion.weeklyCosts?.upkeepNotes ?? ''
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const { setWeeklyCost, setUpkeepNotes } = useBastionMutation(bastionId)
+  const upkeepNotes = bastion?.weeklyCosts?.upkeepNotes ?? ''
 
   const [notesDraft, setNotesDraft] = useState(upkeepNotes)
   useEffect(() => setNotesDraft(upkeepNotes), [upkeepNotes])
+
+  if (!bastion) return null
+
+  const breakdown = computeWeeklyTotal(bastion)
+  const wouldGoNegative = bastion.treasury - breakdown.total < 0
 
   return (
     <section className="mt-8">

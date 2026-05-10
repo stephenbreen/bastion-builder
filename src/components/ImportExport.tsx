@@ -1,6 +1,8 @@
 'use client';
 import { useRef, useState, type ChangeEvent } from 'react'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useCampaignMutations } from '../hooks/useCampaigns'
 import { buildExport } from '../store/reducers/transfer'
 
 function slugify(name: string): string {
@@ -12,13 +14,19 @@ function slugify(name: string): string {
 }
 
 export function ImportExport() {
-  const bastion = useBastionStore((s) => s.bastions[s.activeBastionId])
-  const importBastion = useBastionStore((s) => s.importBastion)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  // Import lives at the campaign-list level once Unit 7 lands the home page,
+  // but the in-footer button is still wired here for Phase B so the existing
+  // localStorage-import workflow doesn't disappear before there's a
+  // replacement.
+  const { importBastion } = useCampaignMutations()
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState<string | null>(null)
 
   const handleExport = () => {
+    if (!bastion) return
     setError(null)
     const data = buildExport(bastion)
     const json = JSON.stringify(data, null, 2)
@@ -73,7 +81,8 @@ export function ImportExport() {
       <button
         type="button"
         onClick={handleExport}
-        className="rounded border border-bastion-gold/60 px-2.5 py-1 text-bastion-gold-bright hover:text-bastion-parchment hover:bg-bastion-gold/20 transition-colors font-semibold tracking-wide"
+        disabled={!bastion}
+        className="rounded border border-bastion-gold/60 px-2.5 py-1 text-bastion-gold-bright hover:text-bastion-parchment hover:bg-bastion-gold/20 transition-colors font-semibold tracking-wide disabled:opacity-40 disabled:cursor-not-allowed"
       >
         Export ↓
       </button>

@@ -6,7 +6,8 @@ import type {
   FacilityState,
 } from '../types'
 import { FACILITY_CATEGORIES } from '../types'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 
 const FACILITY_STATES: FacilityState[] = ['active', 'damaged', 'disabled']
 
@@ -18,7 +19,8 @@ interface FacilityEditFormProps {
 }
 
 export function FacilityEditForm({ facility, onClose }: FacilityEditFormProps) {
-  const updateFacility = useBastionStore((s) => s.updateFacility)
+  const bastionId = useActiveBastionId()
+  const { updateFacility } = useBastionMutation(bastionId)
   const [name, setName] = useState(facility.name)
   const [category, setCategory] = useState<FacilityCategory>(
     facility.category ?? 'production',

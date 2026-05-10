@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useUiStore } from '../store/useUiStore'
 import {
-  type Bastion,
   type Facility,
   type FacilityFloor,
   type Hireling,
@@ -72,15 +73,17 @@ function FloorBand({ floor, label, tiles, hirelings, selectedId, onSelect }: Flo
 }
 
 export function FacilityGrid() {
-  const bastion = useBastionStore<Bastion>(
-    (s) => s.bastions[s.activeBastionId],
-  )
-  const facilities = bastion.facilities
-  const hirelings = bastion.hirelings
-  const selectedId = useBastionStore((s) => s.selectedFacilityId)
-  const selectFacility = useBastionStore((s) => s.selectFacility)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const selectedId = useUiStore((s) => s.selectedFacilityId)
+  const selectFacility = useUiStore((s) => s.selectFacility)
   const isPlayer = usePlayerView()
   const [configOpen, setConfigOpen] = useState(false)
+
+  if (!bastion) return null
+
+  const facilities = bastion.facilities
+  const hirelings = bastion.hirelings
 
   const orderedFloors = getFloorOrder(bastion)
   const byFloor = groupByFloor(facilities, orderedFloors)

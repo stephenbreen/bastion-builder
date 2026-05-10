@@ -1,7 +1,8 @@
 'use client';
 import { useState, type FormEvent } from 'react'
 import type { Edge, Project } from '../types'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 
 interface ProjectRollFormProps {
   project: Project
@@ -9,7 +10,8 @@ interface ProjectRollFormProps {
 }
 
 export function ProjectRollForm({ project, onCancel }: ProjectRollFormProps) {
-  const rollProject = useBastionStore((s) => s.rollProject)
+  const bastionId = useActiveBastionId()
+  const { rollProject } = useBastionMutation(bastionId)
   const [modifier, setModifier] = useState(3)
   const [edge, setEdge] = useState<Edge>(0)
   const [rollerNote, setRollerNote] = useState('')

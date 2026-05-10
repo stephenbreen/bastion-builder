@@ -8,18 +8,17 @@ import {
   type FacilityFloor,
 } from '../types'
 import { getFloors } from '../lib/floors'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 
 interface FloorConfigPanelProps {
   bastion: Bastion
 }
 
 export function FloorConfigPanel({ bastion }: FloorConfigPanelProps) {
-  const setFloorLabel = useBastionStore((s) => s.setFloorLabel)
-  const moveFloor = useBastionStore((s) => s.moveFloor)
-  const addFloor = useBastionStore((s) => s.addFloor)
-  const removeFloor = useBastionStore((s) => s.removeFloor)
-  const resetFloors = useBastionStore((s) => s.resetFloors)
+  const bastionId = useActiveBastionId()
+  const { setFloorLabel, moveFloor, addFloor, removeFloor, resetFloors } =
+    useBastionMutation(bastionId)
   const [error, setError] = useState<string | null>(null)
   const [justAddedId, setJustAddedId] = useState<string | null>(null)
 

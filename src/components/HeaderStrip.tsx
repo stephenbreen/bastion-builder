@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 import { ASPECT_LIST, type Aspect } from '../types'
 import { ASPECT_INFO } from '../data/aspect-info'
 import { quoteNextUpgrade } from '../data/stronghold-levels'
@@ -32,7 +34,8 @@ const toneClass: Record<NonNullable<StatProps['tone']>, string> = {
 }
 
 function TreasuryEditor({ value }: { value: number }) {
-  const setTreasury = useBastionStore((s) => s.setTreasury)
+  const bastionId = useActiveBastionId()
+  const { setTreasury } = useBastionMutation(bastionId)
   const isPlayer = usePlayerView()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(String(value))
@@ -106,10 +109,11 @@ function TreasuryEditor({ value }: { value: number }) {
 }
 
 function AspectEditor() {
-  const aspect = useBastionStore((s) => s.bastions[s.activeBastionId].aspect)
-  const pending = useBastionStore((s) => s.bastions[s.activeBastionId].pendingAspect)
-  const switchAspect = useBastionStore((s) => s.switchAspect)
-  const cancelAspectSwitch = useBastionStore((s) => s.cancelAspectSwitch)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const { switchAspect, cancelAspectSwitch } = useBastionMutation(bastionId)
+  const aspect = bastion?.aspect
+  const pending = bastion?.pendingAspect
   const isPlayer = usePlayerView()
   const [editing, setEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -118,6 +122,8 @@ function AspectEditor() {
   useEffect(() => {
     if (editing) requestAnimationFrame(() => selectRef.current?.focus())
   }, [editing])
+
+  if (!aspect) return null
 
   if (isPlayer) {
     if (pending) {
@@ -242,8 +248,10 @@ function AspectEditor() {
 }
 
 function RenownEditor() {
-  const renown = useBastionStore((s) => s.bastions[s.activeBastionId].domain.renown)
-  const adjust = useBastionStore((s) => s.adjustDomainRenown)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const renown = bastion?.domain.renown ?? 0
+  const { adjustDomainRenown } = useBastionMutation(bastionId)
   const isPlayer = usePlayerView()
   const nextRenown = nextRenownThreshold(renown)
   const [editing, setEditing] = useState(false)
@@ -276,7 +284,7 @@ function RenownEditor() {
   const commit = () => {
     const parsed = Math.max(0, Math.trunc(Number(draft)))
     if (Number.isFinite(parsed) && parsed !== renown) {
-      adjust(parsed - renown, 'manual')
+      adjustDomainRenown(parsed - renown, 'manual')
     }
     setEditing(false)
   }
@@ -319,7 +327,7 @@ function RenownEditor() {
       <span className="flex gap-0.5">
         <button
           type="button"
-          onClick={() => adjust(-1, 'quick')}
+          onClick={() => adjustDomainRenown(-1, 'quick')}
           aria-label="Lower renown by 1"
           title="-1"
           className="rounded border border-bastion-crimson/50 px-1 text-sm text-bastion-crimson hover:bg-bastion-crimson hover:text-bastion-parchment transition-colors"
@@ -328,7 +336,7 @@ function RenownEditor() {
         </button>
         <button
           type="button"
-          onClick={() => adjust(1, 'quick')}
+          onClick={() => adjustDomainRenown(1, 'quick')}
           aria-label="Raise renown by 1"
           title="+1"
           className="rounded border border-bastion-gold/60 px-1 text-sm text-bastion-gold-bright hover:bg-bastion-gold/30 transition-colors"
@@ -341,10 +349,12 @@ function RenownEditor() {
 }
 
 function StrongholdEditor() {
-  const aspect = useBastionStore((s) => s.bastions[s.activeBastionId].aspect)
-  const level = useBastionStore((s) => s.bastions[s.activeBastionId].strongholdLevel)
-  const treasury = useBastionStore((s) => s.bastions[s.activeBastionId].treasury)
-  const levelUp = useBastionStore((s) => s.levelUpStronghold)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const { levelUpStronghold } = useBastionMutation(bastionId)
+  const aspect = bastion?.aspect
+  const level = bastion?.strongholdLevel ?? 1
+  const treasury = bastion?.treasury ?? 0
   const isPlayer = usePlayerView()
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -359,6 +369,8 @@ function StrongholdEditor() {
     return () => window.removeEventListener('mousedown', onClick)
   }, [open])
 
+  if (!aspect) return null
+
   if (isPlayer) {
     return <span className="text-bastion-parchment">L{level}</span>
   }
@@ -368,7 +380,7 @@ function StrongholdEditor() {
   const canAfford = !isMax && treasury >= quote.cost.gp
 
   const handleUpgrade = () => {
-    const result = levelUp()
+    const result = levelUpStronghold()
     if (result.ok) {
       setError(null)
       setOpen(false)
@@ -490,12 +502,24 @@ function Stat({ label, value, tone = 'default' }: StatProps) {
 }
 
 export function HeaderStrip() {
-  const bastion = useBastionStore((s) => s.bastions[s.activeBastionId])
-  const advanceWeek = useBastionStore((s) => s.advanceWeek)
-  const rewindWeek = useBastionStore((s) => s.rewindWeek)
-  const canRewind = useBastionStore((s) => s.weekHistory.length > 0)
+  const bastionId = useActiveBastionId()
+  const result = useBastion(bastionId)
+  const bastion = result.data?.state
+  const historyLength = result.data?.historyLength ?? 0
+  const { advanceWeek, rewindWeek } = useBastionMutation(bastionId)
   const isPlayer = usePlayerView()
 
+  if (!bastion) {
+    return (
+      <header className="sticky top-0 z-10 backdrop-blur-md bg-bastion-night/90 border-b-[3px] border-bastion-gold/70 shadow-[0_4px_0_-1px_var(--color-bastion-crimson-deep)]">
+        <div className="max-w-6xl mx-auto px-6 py-5 text-bastion-parchment/70 italic">
+          Loading bastion…
+        </div>
+      </header>
+    )
+  }
+
+  const canRewind = historyLength > 0
   const pendingOrderCount = bastion.facilities.filter((f) => f.pendingOrder).length
   const constructionCount = bastion.facilities.filter(
     (f) => f.state === 'under-construction',

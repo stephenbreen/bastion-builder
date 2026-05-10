@@ -8,7 +8,9 @@ import {
   type ProjectCategory,
   type ProjectStatus,
 } from '../types'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 import { usePlayerView } from '../lib/view-mode'
 import { ProjectRollForm } from './ProjectRollForm'
 
@@ -165,7 +167,8 @@ interface ProjectCardProps {
 }
 
 function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
-  const updateProject = useBastionStore((s) => s.updateProject)
+  const bastionId = useActiveBastionId()
+  const { updateProject } = useBastionMutation(bastionId)
   const isPlayer = usePlayerView()
   const [rolling, setRolling] = useState(false)
 
@@ -342,10 +345,10 @@ function projectToDraft(p: Project): DraftState {
 }
 
 export function ProjectsSection() {
-  const projects = useBastionStore((s) => s.bastions[s.activeBastionId].projects)
-  const addProject = useBastionStore((s) => s.addProject)
-  const updateProject = useBastionStore((s) => s.updateProject)
-  const removeProject = useBastionStore((s) => s.removeProject)
+  const bastionId = useActiveBastionId()
+  const projects = useBastion(bastionId).data?.state.projects ?? []
+  const { addProject, updateProject, removeProject } =
+    useBastionMutation(bastionId)
   const isPlayer = usePlayerView()
 
   const [adding, setAdding] = useState(false)

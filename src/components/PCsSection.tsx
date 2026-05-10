@@ -5,7 +5,9 @@ import {
   type PC,
   type PCAbility,
 } from '../types'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 import { usePlayerView } from '../lib/view-mode'
 import { getFloorLabel } from '../lib/floors'
 
@@ -82,7 +84,8 @@ interface PCFormProps {
 }
 
 function PCForm({ initial, submitLabel, onSubmit, onCancel }: PCFormProps) {
-  const facilities = useBastionStore((s) => s.bastions[s.activeBastionId].facilities)
+  const bastionId = useActiveBastionId()
+  const facilities = useBastion(bastionId).data?.state.facilities ?? []
   const [draft, setDraft] = useState<DraftState>(initial ?? emptyDraft)
 
   const handleSubmit = (e: FormEvent) => {
@@ -289,15 +292,16 @@ function PCRow({ pc, facilityName, onEdit, onRemove, readOnly }: PCRowProps) {
 }
 
 export function PCsSection() {
-  const bastion = useBastionStore((s) => s.bastions[s.activeBastionId])
-  const pcs = bastion.pcs ?? []
-  const addPc = useBastionStore((s) => s.addPc)
-  const updatePc = useBastionStore((s) => s.updatePc)
-  const removePc = useBastionStore((s) => s.removePc)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const { addPc, updatePc, removePc } = useBastionMutation(bastionId)
   const isPlayer = usePlayerView()
-
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+
+  if (!bastion) return null
+
+  const pcs = bastion.pcs ?? []
 
   const facilityNameOf = (id?: string): string | null => {
     if (!id) return null

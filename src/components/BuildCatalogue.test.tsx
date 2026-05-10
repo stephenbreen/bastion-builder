@@ -2,23 +2,23 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BuildCatalogue } from './BuildCatalogue'
-import { useBastionStore } from '../store/useBastionStore'
+import { useBastionDataStore } from '../store/useBastionDataStore'
+import { useUiStore } from '../store/useUiStore'
 import { seedManor } from '../data/seed'
 
 function resetStoreWithTreasury(gp: number) {
-  useBastionStore.setState((s) => {
+  useBastionDataStore.setState((s) => {
     const id = s.activeBastionId
     return {
       bastions: { ...s.bastions, [id]: { ...seedManor(), treasury: gp } },
-      selectedFacilityId: null,
       weekHistory: [],
-      viewMode: 'dm',
     }
   })
+  useUiStore.setState({ selectedFacilityId: null, viewMode: 'dm' })
 }
 
 function getActive() {
-  const s = useBastionStore.getState()
+  const s = useBastionDataStore.getState()
   return s.bastions[s.activeBastionId]
 }
 

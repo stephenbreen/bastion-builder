@@ -1,7 +1,9 @@
 import type { Bastion, Domain } from '../../types'
 import { emptyDomain } from '../../types'
 
-// Bumped together with the persist version in useBastionStore.
+// Bumped together with the persisted bastion schema (server-side once the
+// cloud-state migration lands; was the persist version in useBastionStore
+// prior to Phase B).
 export const SCHEMA_VERSION = 10
 
 export interface ExportFile {

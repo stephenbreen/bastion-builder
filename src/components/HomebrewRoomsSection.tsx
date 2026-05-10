@@ -1,6 +1,8 @@
 'use client';
 import { useMemo, useState } from 'react'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 import { usePlayerView } from '../lib/view-mode'
 import {
   type CatalogueEntry,
@@ -159,12 +161,13 @@ function EntryRow({ entry, onEdit, onDelete }: EntryRowProps) {
 
 export function HomebrewRoomsSection() {
   const isPlayer = usePlayerView()
-  const customs = useBastionStore(
-    (s) => s.bastions[s.activeBastionId].customCatalogueEntries,
-  )
-  const addEntry = useBastionStore((s) => s.addCustomCatalogueEntry)
-  const updateEntry = useBastionStore((s) => s.updateCustomCatalogueEntry)
-  const removeEntry = useBastionStore((s) => s.removeCustomCatalogueEntry)
+  const bastionId = useActiveBastionId()
+  const customs = useBastion(bastionId).data?.state.customCatalogueEntries
+  const {
+    addCustomCatalogueEntry: addEntry,
+    updateCustomCatalogueEntry: updateEntry,
+    removeCustomCatalogueEntry: removeEntry,
+  } = useBastionMutation(bastionId)
 
   const [open, setOpen] = useState(false)
   const [showForm, setShowForm] = useState(false)

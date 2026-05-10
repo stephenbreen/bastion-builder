@@ -8,7 +8,10 @@ import type {
   HirelingLoyalty,
   OrderType,
 } from '../types'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
+import { useUiStore } from '../store/useUiStore'
 import { formatGp } from '../lib/format'
 import { getFloorLabel, getFloorOrder } from '../lib/floors'
 import { usePlayerView } from '../lib/view-mode'
@@ -53,8 +56,9 @@ interface OrderPickerProps {
 }
 
 function OrderPicker({ facility }: OrderPickerProps) {
-  const setOrder = useBastionStore((s) => s.setOrder)
-  const week = useBastionStore((s) => s.bastions[s.activeBastionId].inGameWeek)
+  const bastionId = useActiveBastionId()
+  const { setOrder } = useBastionMutation(bastionId)
+  const week = useBastion(bastionId).data?.state.inGameWeek ?? 0
   const isPlayer = usePlayerView()
   const isActive = facility.state === 'active'
   const groupName = `order-${facility.id}`
@@ -174,7 +178,8 @@ function PanelBody({ facility, hireling }: PanelBodyProps) {
   const totalCost = facility.cost * (facility.count ?? 1)
   const isUnderConstruction = facility.state === 'under-construction'
   const isPlayer = usePlayerView()
-  const removeFacility = useBastionStore((s) => s.removeFacility)
+  const bastionId = useActiveBastionId()
+  const { removeFacility } = useBastionMutation(bastionId)
   const [editing, setEditing] = useState(false)
 
   const handleDelete = () => {
@@ -323,10 +328,12 @@ function PanelBody({ facility, hireling }: PanelBodyProps) {
 
 
 function FloorPicker({ facility }: { facility: Facility }) {
-  const setFacilityFloor = useBastionStore((s) => s.setFacilityFloor)
-  const bastion = useBastionStore((s) => s.bastions[s.activeBastionId])
+  const bastionId = useActiveBastionId()
+  const { setFacilityFloor } = useBastionMutation(bastionId)
+  const bastion = useBastion(bastionId).data?.state
   const isPlayer = usePlayerView()
   const current = facility.floor ?? 'ground'
+  if (!bastion) return null
   const orderedFloors = getFloorOrder(bastion)
 
   return (
@@ -354,7 +361,8 @@ function FloorPicker({ facility }: { facility: Facility }) {
 }
 
 function FacilityHistory({ facilityId }: { facilityId: string }) {
-  const log = useBastionStore((s) => s.bastions[s.activeBastionId].log)
+  const bastionId = useActiveBastionId()
+  const log = useBastion(bastionId).data?.state.log ?? []
   const recent = log.filter((e) => e.actor === facilityId).slice(-5).reverse()
 
   // Empty state: a single muted line, not a full Field block.
@@ -429,8 +437,11 @@ function ActionCard({ action, index }: { action: string; index: number }) {
 }
 
 function AspectTab() {
-  const aspect = useBastionStore((s) => s.bastions[s.activeBastionId].aspect)
-  const pending = useBastionStore((s) => s.bastions[s.activeBastionId].pendingAspect)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const aspect = bastion?.aspect
+  const pending = bastion?.pendingAspect
+  if (!aspect) return null
   const info = ASPECT_INFO[aspect]
 
   return (
@@ -518,16 +529,16 @@ function AspectTab() {
 type PanelTab = 'facility' | 'aspect'
 
 export function FacilityPanel() {
-  const selectedId = useBastionStore((s) => s.selectedFacilityId)
-  const facility = useBastionStore((s) =>
-    selectedId ? s.bastions[s.activeBastionId].facilities.find((f) => f.id === selectedId) : undefined,
-  )
-  const hireling = useBastionStore((s) =>
-    facility?.hirelingId
-      ? s.bastions[s.activeBastionId].hirelings.find((h) => h.id === facility.hirelingId)
-      : undefined,
-  )
-  const clearSelection = useBastionStore((s) => s.clearSelection)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const selectedId = useUiStore((s) => s.selectedFacilityId)
+  const facility = selectedId
+    ? bastion?.facilities.find((f) => f.id === selectedId)
+    : undefined
+  const hireling = facility?.hirelingId
+    ? bastion?.hirelings.find((h) => h.id === facility.hirelingId)
+    : undefined
+  const clearSelection = useUiStore((s) => s.clearSelection)
 
   const [tab, setTab] = useState<PanelTab>('aspect')
 

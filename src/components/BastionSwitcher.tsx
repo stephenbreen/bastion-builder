@@ -1,17 +1,18 @@
 'use client';
 import { useEffect, useRef, useState } from 'react'
-import { useBastionStore } from '../store/useBastionStore'
+import { useCampaigns, useCampaignMutations } from '../hooks/useCampaigns'
 import { usePlayerView } from '../lib/view-mode'
 
+/**
+ * Switches between bastions. Phase B keeps the in-memory pattern that
+ * existed before the cloud-state refactor; Unit 7 reshapes this into a
+ * campaign switcher driven by `/api/campaigns` + `router.push('/c/' + id)`.
+ */
 export function BastionSwitcher() {
   const isPlayer = usePlayerView()
-  const bastions = useBastionStore((s) => s.bastions)
-  const activeId = useBastionStore((s) => s.activeBastionId)
-  const switchBastion = useBastionStore((s) => s.switchBastion)
-  const createBastion = useBastionStore((s) => s.createBastion)
-  const renameBastion = useBastionStore((s) => s.renameBastion)
-  const duplicateBastion = useBastionStore((s) => s.duplicateBastion)
-  const deleteBastion = useBastionStore((s) => s.deleteBastion)
+  const { bastions, activeId, ids } = useCampaigns()
+  const { switchBastion, createBastion, renameBastion, duplicateBastion, deleteBastion } =
+    useCampaignMutations()
 
   const [open, setOpen] = useState(false)
   const [renaming, setRenaming] = useState(false)
@@ -22,9 +23,6 @@ export function BastionSwitcher() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const active = bastions[activeId]
-  const allIds = Object.keys(bastions).sort((a, b) =>
-    bastions[a].name.localeCompare(bastions[b].name),
-  )
 
   // Click-outside closes the popover.
   useEffect(() => {
@@ -118,7 +116,7 @@ export function BastionSwitcher() {
         aria-haspopup="menu"
         aria-expanded={open}
         className="flex items-baseline gap-2 text-5xl font-bold text-bastion-gold-bright tracking-[0.05em] font-display drop-shadow-[0_2px_0_rgba(0,0,0,0.5)] hover:brightness-110 transition-all"
-        title={`Switch / manage bastions (${Object.keys(bastions).length} total)`}
+        title={`Switch / manage bastions (${ids.length} total)`}
       >
         <span>{active?.name ?? 'Untitled bastion'}</span>
         <span className="text-xl text-bastion-gold/70" aria-hidden>
@@ -135,7 +133,7 @@ export function BastionSwitcher() {
             Bastions
           </div>
           <ul className="space-y-1 mb-3 max-h-56 overflow-y-auto">
-            {allIds.map((id) => {
+            {ids.map((id) => {
               const isActive = id === activeId
               return (
                 <li key={id}>

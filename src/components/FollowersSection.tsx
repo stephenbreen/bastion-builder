@@ -7,7 +7,9 @@ import {
   type FollowerRole,
   type FollowerSource,
 } from '../types'
-import { useBastionStore } from '../store/useBastionStore'
+import { useActiveBastionId } from '../hooks/useActiveBastionId'
+import { useBastion } from '../hooks/useBastion'
+import { useBastionMutation } from '../hooks/useBastionMutation'
 import { followerSlotUsage } from '../lib/format'
 import { usePlayerView } from '../lib/view-mode'
 
@@ -208,11 +210,12 @@ function followerToDraft(f: Follower): DraftState {
 }
 
 export function FollowersSection() {
-  const followers = useBastionStore((s) => s.bastions[s.activeBastionId].followers)
-  const renown = useBastionStore((s) => s.bastions[s.activeBastionId].domain.renown)
-  const addFollower = useBastionStore((s) => s.addFollower)
-  const updateFollower = useBastionStore((s) => s.updateFollower)
-  const removeFollower = useBastionStore((s) => s.removeFollower)
+  const bastionId = useActiveBastionId()
+  const bastion = useBastion(bastionId).data?.state
+  const followers = bastion?.followers ?? []
+  const renown = bastion?.domain.renown ?? 0
+  const { addFollower, updateFollower, removeFollower } =
+    useBastionMutation(bastionId)
 
   const isPlayer = usePlayerView()
   const usage = followerSlotUsage(followers, renown)
