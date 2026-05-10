@@ -19,7 +19,7 @@ This document outlines how to evolve Bastion Planner from a local-only, single-p
 
 | Layer | Choice | Rationale |
 |-------|--------|-----------|
-| **Framework** | **Next.js 15** (App Router) | Native API routes on Vercel. Natural upgrade path from Vite + React. |
+| **Framework** | **Next.js (latest, 16.x)** (App Router) | Native API routes on Vercel. Natural upgrade path from Vite + React. |
 | **Database** | **Neon Postgres** | 500 MB storage + 190 compute hours/mo on free tier. Serverless-friendly via the `@neondatabase/serverless` driver. |
 | **ORM** | **Drizzle ORM** | TypeScript-first, tiny runtime, excellent Postgres/Neon support. Migrations are just SQL files. |
 | **Auth** | **Clerk** | Free tier: 10k MAU. OAuth (Google, Discord) out of the box. Minimal boilerplate. |
@@ -266,7 +266,7 @@ For non-conflicting edits (e.g., two players update notes on different hirelings
 
 **Goal**: Deployable app with login/logout, no database yet.
 
-1. Create a new Next.js 15 project alongside the existing Vite app, or convert the repo in place.
+1. Create a new Next.js project alongside the existing Vite app, or convert the repo in place. Pin to `next: "latest"` (currently resolves to 16.x).
 2. Move `src/components`, `src/types`, `src/data`, `src/lib`, `src/store/reducers` into the Next.js `src/` directory.
 3. Install Clerk and wrap the root layout in `<ClerkProvider>`.
 4. Add a login page at `/sign-in` and a campaign list page at `/`.
@@ -277,7 +277,7 @@ For non-conflicting edits (e.g., two players update notes on different hirelings
 - `main.tsx` → `app/layout.tsx`
 - `App.tsx` → `app/page.tsx`
 - Vite config + `index.html` → deleted
-- Add `middleware.ts` for Clerk route protection
+- Add `proxy.ts` for Clerk route protection (Next.js 16 renamed `middleware.ts` → `proxy.ts`)
 
 **What doesn't change:**
 - All components, types, data files, reducers, tests.
@@ -337,7 +337,7 @@ For non-conflicting edits (e.g., two players update notes on different hirelings
 
 | File / Area | Current | After Migration |
 |-------------|---------|-----------------|
-| **Framework** | Vite + React SPA | Next.js 15 App Router |
+| **Framework** | Vite + React SPA | Next.js 16 App Router |
 | **Entry points** | `main.tsx`, `index.html`, `App.tsx` | `app/layout.tsx`, `app/page.tsx` |
 | **State (server)** | Zustand + `persist` + localStorage | TanStack Query + Neon Postgres |
 | **State (client UI)** | Zustand (everything) | Zustand (theme, selection, view mode only) |
@@ -386,7 +386,7 @@ Once the multiplayer core is live, these become trivial to add:
 - [ ] Create Neon project and save connection string.
 - [ ] Create Clerk application and configure OAuth providers (Google, Discord).
 - [ ] Add `DATABASE_URL` and Clerk keys to Vercel Environment Variables.
-- [ ] Install Next.js 15 in repo (or scaffold fresh and port files).
+- [ ] Install Next.js (latest, 16.x) in repo (or scaffold fresh and port files).
 - [ ] Move `src/` contents to new Next.js project.
 - [ ] Configure Drizzle schema and run first migration.
 - [ ] Wire Clerk auth to root layout.

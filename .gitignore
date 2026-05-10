@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Next.js
+.next/
+
 # Source rule references (copyrighted — kept locally, not committed)
 source-rules/
 
