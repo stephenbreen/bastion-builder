@@ -1,3 +1,4 @@
+'use client';
 import { useRef, useState, type ChangeEvent } from 'react'
 import { useBastionStore } from '../store/useBastionStore'
 import { buildExport } from '../store/reducers/transfer'

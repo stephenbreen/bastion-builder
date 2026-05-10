@@ -1,3 +1,4 @@
+'use client';
 import { useEffect } from 'react'
 import { BuildCatalogue } from './components/BuildCatalogue'
 import { DmNotesSection } from './components/DmNotesSection'

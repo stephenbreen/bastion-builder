@@ -1,3 +1,4 @@
+'use client';
 import { useBastionStore } from '../store/useBastionStore'
 import { computeDomainSkills } from '../lib/domain'
 import { formatWeeksSinceIntrigue, weeksSinceIntrigue } from '../lib/format'

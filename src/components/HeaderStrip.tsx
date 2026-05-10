@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useBastionStore } from '../store/useBastionStore'
 import { ASPECT_LIST, type Aspect } from '../types'
