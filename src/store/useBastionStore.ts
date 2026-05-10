@@ -85,6 +85,7 @@ import {
   levelUpStronghold,
   type LevelUpResult,
 } from './reducers/stronghold-level'
+import { migratePersistedState } from './persist-migrate'
 
 export type ViewMode = 'dm' | 'player'
 
@@ -521,54 +522,8 @@ export const useBastionStore = create<BastionStore>()(
         activeBastionId: state.activeBastionId,
         theme: state.theme,
       }),
-      migrate: (persisted, version) => {
-        let state = persisted as
-          | { bastion?: Bastion; bastions?: Record<string, Bastion>; activeBastionId?: string; theme?: ThemeName }
-          | null
-        if (!state || typeof state !== 'object') return persisted as BastionStore
-
-        // v8 → v9: single bastion → multi-bastion record.
-        if (version < 9) {
-          const id = makeBastionId()
-          const bastion = state.bastion ?? seedManor()
-          state = {
-            bastions: { [id]: bastion },
-            activeBastionId: id,
-            theme: state.theme ?? 'heraldic',
-          }
-        }
-
-        // v9 → v10: collapse customFloorLabels + floorOrder into floors: Floor[].
-        if (version < 10 && state.bastions) {
-          for (const bid of Object.keys(state.bastions)) {
-            const b = state.bastions[bid] as Bastion & {
-              customFloorLabels?: Partial<Record<string, string>>
-              floorOrder?: string[]
-            }
-            const hadOverrides = !!(b.customFloorLabels || b.floorOrder)
-            if (hadOverrides) {
-              const order = b.floorOrder ?? ['tower', 'second', 'first', 'ground', 'cellar']
-              b.floors = order.map((id) => ({
-                id,
-                label:
-                  b.customFloorLabels?.[id] ??
-                  ({
-                    cellar: 'Cellar',
-                    ground: 'Ground floor',
-                    first: 'First floor',
-                    second: 'Second floor',
-                    tower: 'Tower',
-                  } as Record<string, string>)[id] ??
-                  id,
-              }))
-            }
-            delete b.customFloorLabels
-            delete b.floorOrder
-          }
-        }
-
-        return state as unknown as BastionStore
-      },
+      migrate: (persisted, version) =>
+        (migratePersistedState(persisted, version) ?? persisted) as BastionStore,
     },
   ),
 )
