@@ -22,6 +22,8 @@ export type * from './follower'
 export { FOLLOWER_ROLES, FOLLOWER_SOURCES } from './follower'
 export type * from './hireling'
 export type * from './log'
+export type * from './pc'
+export { PC_ABILITIES } from './pc'
 export type * from './project'
 export {
   ABILITIES,

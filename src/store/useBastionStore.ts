@@ -72,6 +72,14 @@ import {
   type FacilityPatch,
   type UpdateFacilityResult,
 } from './reducers/facility-edit'
+import {
+  addPc,
+  removePc,
+  updatePc,
+  type PCInput,
+  type PCPatch,
+  type PCResult,
+} from './reducers/pcs'
 
 export type ViewMode = 'dm' | 'player'
 
@@ -161,6 +169,11 @@ interface BastionStore {
   // Facility editing (built rooms)
   updateFacility: (id: string, patch: FacilityPatch) => UpdateFacilityResult
   removeFacility: (id: string) => void
+
+  // PC tracker
+  addPc: (input: PCInput) => PCResult
+  updatePc: (id: string, patch: PCPatch) => PCResult
+  removePc: (id: string) => void
 
   // Import (creates a new bastion and switches to it)
   importBastion: (text: string) => ParseResult
@@ -457,6 +470,18 @@ export const useBastionStore = create<BastionStore>()(
           return result
         },
         removeFacility: (id) => mutateActive((b) => removeFacility(b, id)),
+
+        addPc: (input) => {
+          const result = addPc(getActive(), input)
+          if (result.ok) mutateActive(() => result.bastion)
+          return result
+        },
+        updatePc: (id, patch) => {
+          const result = updatePc(getActive(), id, patch)
+          if (result.ok) mutateActive(() => result.bastion)
+          return result
+        },
+        removePc: (id) => mutateActive((b) => removePc(b, id)),
 
         importBastion: (text) => {
           const result = parseImportJSON(text)

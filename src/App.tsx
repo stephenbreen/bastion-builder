@@ -8,6 +8,7 @@ import { FollowersSection } from './components/FollowersSection'
 import { HeaderStrip } from './components/HeaderStrip'
 import { HomebrewRoomsSection } from './components/HomebrewRoomsSection'
 import { ImportExport } from './components/ImportExport'
+import { PCsSection } from './components/PCsSection'
 import { ProjectsSection } from './components/ProjectsSection'
 import { WeeklyCostsSection } from './components/WeeklyCostsSection'
 import { XanatharActivities } from './components/XanatharActivities'
@@ -119,6 +120,8 @@ export default function App() {
         <DomainSection />
 
         <WeeklyCostsSection />
+
+        <PCsSection />
 
         <FollowersSection />
 

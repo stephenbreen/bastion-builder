@@ -1,6 +1,14 @@
 import type { KeyboardEvent } from 'react'
-import type { Facility, FacilityCategory, Hireling } from '../types'
+import type { Facility, FacilityCategory, Hireling, Size } from '../types'
 import { formatGp } from '../lib/format'
+
+// Larger sizes claim more grid cells: vast = 2×2, roomy = 1×2 (taller),
+// cramped = 1×1. Sticks to whole-cell counts so the grid stays orderly.
+const SIZE_SPAN_CLASSES: Record<Size, string> = {
+  cramped: '',
+  roomy: 'row-span-2',
+  vast: 'col-span-2 row-span-2',
+}
 
 // Subtle category accent: a coloured left edge + faint same-tone wash.
 // Keeps parchment as the dominant tone so the manor still reads as paper.
@@ -105,6 +113,7 @@ export function FacilityTile({ facility, hireling, selected, onSelect }: Facilit
       className={[
         'parchment-surface group relative rounded-md p-3 min-h-[6.5rem] flex flex-col overflow-hidden',
         'cursor-pointer transition-all duration-150',
+        SIZE_SPAN_CLASSES[facility.size],
         frameClasses,
         'shadow-[2px_3px_0_rgba(0,0,0,0.45)] hover:shadow-[3px_5px_0_rgba(0,0,0,0.5)]',
         'hover:-translate-y-[1px]',

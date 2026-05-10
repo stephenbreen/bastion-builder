@@ -279,6 +279,16 @@ function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
 
   const setStatus = (status: Project['status']) => updateProject(project.id, { status })
 
+  const handleAbandon = () => {
+    if (
+      window.confirm(
+        `Abandon "${project.name}"? Roll history is kept; you can re-pick it up later by editing the status, but no further rolls can be made while abandoned.`,
+      )
+    ) {
+      setStatus('abandoned')
+    }
+  }
+
   return (
     <div className="parchment-surface rounded-md border-[3px] border-bastion-oak p-3 shadow-[2px_3px_0_rgba(0,0,0,0.4)] space-y-2">
       <div className="flex items-baseline justify-between gap-2 flex-wrap">
@@ -397,7 +407,7 @@ function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
           {(isActive || project.status === 'paused') && (
             <button
               type="button"
-              onClick={() => setStatus('abandoned')}
+              onClick={handleAbandon}
               className="rounded border border-bastion-crimson px-2 py-1 uppercase tracking-wider text-bastion-crimson hover:bg-bastion-crimson/10 transition-colors"
             >
               Abandon

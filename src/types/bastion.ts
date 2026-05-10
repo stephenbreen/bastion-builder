@@ -3,6 +3,7 @@ import type { CatalogueEntry, Facility, Floor } from './facility'
 import type { Follower } from './follower'
 import type { Hireling } from './hireling'
 import type { LogEntry } from './log'
+import type { PC } from './pc'
 import type { Project } from './project'
 
 export const ASPECT_LIST = [
@@ -64,6 +65,8 @@ export interface Bastion {
   facilities: Facility[]
   hirelings: Hireling[]
   followers: Follower[]
+  /** Player characters managing this bastion — the party sheet. */
+  pcs?: PC[]
   projects: Project[]
   log: LogEntry[]
   /** Weekly costs auto-deducted on advance week. Optional — defaults to zeros. */
