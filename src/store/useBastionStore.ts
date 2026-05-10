@@ -80,6 +80,10 @@ import {
   type PCPatch,
   type PCResult,
 } from './reducers/pcs'
+import {
+  levelUpStronghold,
+  type LevelUpResult,
+} from './reducers/stronghold-level'
 
 export type ViewMode = 'dm' | 'player'
 
@@ -174,6 +178,9 @@ interface BastionStore {
   addPc: (input: PCInput) => PCResult
   updatePc: (id: string, patch: PCPatch) => PCResult
   removePc: (id: string) => void
+
+  // Stronghold level-up
+  levelUpStronghold: () => LevelUpResult
 
   // Import (creates a new bastion and switches to it)
   importBastion: (text: string) => ParseResult
@@ -482,6 +489,12 @@ export const useBastionStore = create<BastionStore>()(
           return result
         },
         removePc: (id) => mutateActive((b) => removePc(b, id)),
+
+        levelUpStronghold: () => {
+          const result = levelUpStronghold(getActive())
+          if (result.ok) mutateActive(() => result.bastion)
+          return result
+        },
 
         importBastion: (text) => {
           const result = parseImportJSON(text)

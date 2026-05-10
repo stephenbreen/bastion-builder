@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useBastionStore } from '../store/useBastionStore'
 import { ASPECT_LIST, type Aspect } from '../types'
 import { ASPECT_INFO } from '../data/aspect-info'
+import { quoteNextUpgrade } from '../data/stronghold-levels'
 import { computeWeeklyTotal } from '../lib/costs'
 import { BastionSwitcher } from './BastionSwitcher'
 import {
@@ -338,6 +339,142 @@ function RenownEditor() {
   )
 }
 
+function StrongholdEditor() {
+  const aspect = useBastionStore((s) => s.bastions[s.activeBastionId].aspect)
+  const level = useBastionStore((s) => s.bastions[s.activeBastionId].strongholdLevel)
+  const treasury = useBastionStore((s) => s.bastions[s.activeBastionId].treasury)
+  const levelUp = useBastionStore((s) => s.levelUpStronghold)
+  const isPlayer = usePlayerView()
+  const [open, setOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const containerRef = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onClick = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    window.addEventListener('mousedown', onClick)
+    return () => window.removeEventListener('mousedown', onClick)
+  }, [open])
+
+  if (isPlayer) {
+    return <span className="text-bastion-parchment">L{level}</span>
+  }
+
+  const quote = quoteNextUpgrade(aspect, level)
+  const isMax = quote === null
+  const canAfford = !isMax && treasury >= quote.cost.gp
+
+  const handleUpgrade = () => {
+    const result = levelUp()
+    if (result.ok) {
+      setError(null)
+      setOpen(false)
+    } else {
+      setError(result.reason)
+    }
+  }
+
+  return (
+    <span ref={containerRef} className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => {
+          setOpen((v) => !v)
+          setError(null)
+        }}
+        title={
+          isMax
+            ? 'Stronghold is at the highest level (5).'
+            : `Click to upgrade — L${quote.fromLevel} → L${quote.toLevel} for ${quote.cost.gp} gp.`
+        }
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={[
+          'transition-colors decoration-bastion-gold/40 underline-offset-4 hover:underline',
+          isMax
+            ? 'text-bastion-parchment cursor-default hover:no-underline'
+            : 'text-bastion-parchment hover:text-bastion-gold-bright',
+        ].join(' ')}
+      >
+        L{level}{!isMax && <span className="ml-1 text-base text-bastion-gold-bright">↑</span>}
+      </button>
+
+      {open && quote && (
+        <div
+          role="menu"
+          className="parchment-surface absolute z-30 right-0 mt-2 w-80 rounded-md border-[3px] border-bastion-oak shadow-[3px_4px_0_rgba(0,0,0,0.5)] p-3 text-bastion-ink"
+        >
+          <div className="text-sm uppercase tracking-[0.22em] text-bastion-oak font-bold mb-2">
+            Upgrade stronghold
+          </div>
+          <div className="font-display text-2xl text-bastion-ink mb-1">
+            L{quote.fromLevel} → L{quote.toLevel}
+          </div>
+          <div className="text-base text-bastion-ink-soft mb-2">
+            <span className="capitalize font-semibold">
+              {quote.strongholdClass}
+            </span>{' '}
+            · {ASPECT_INFO[aspect].strongholdType}
+          </div>
+          <ul className="text-base text-bastion-ink space-y-0.5 mb-3">
+            <li>
+              <span className="uppercase tracking-[0.16em] text-bastion-oak mr-1">
+                Cost:
+              </span>
+              <span className="font-semibold tabular-nums">
+                {formatGp(quote.cost.gp)}
+              </span>
+              <span className="text-bastion-ink-mute"> · ~{quote.cost.days} days</span>
+            </li>
+            <li>
+              <span className="uppercase tracking-[0.16em] text-bastion-oak mr-1">
+                Treasury:
+              </span>
+              <span className={treasury < quote.cost.gp ? 'text-bastion-crimson font-semibold' : ''}>
+                {formatGp(treasury)}
+              </span>
+              {treasury < quote.cost.gp && (
+                <span className="text-bastion-crimson italic">
+                  {' '}
+                  ({formatGp(quote.cost.gp - treasury)} short)
+                </span>
+              )}
+            </li>
+          </ul>
+          <p className="text-sm italic text-bastion-ink-mute mb-3 leading-relaxed">
+            On upgrade you may also roll on the {aspect} class follower table
+            (S&amp;F ch. 7) — add the result via the Followers section.
+          </p>
+          {error && (
+            <div className="mb-2 rounded border-2 border-bastion-crimson bg-bastion-crimson/10 px-2 py-1 text-base text-bastion-crimson font-semibold">
+              {error}
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded border border-bastion-oak px-3 py-1 text-base uppercase tracking-wider text-bastion-ink-soft hover:text-bastion-ink hover:bg-bastion-parchment-warm transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleUpgrade}
+              disabled={!canAfford}
+              className="banner-ribbon rounded px-3 py-1 text-base font-display tracking-[0.08em] uppercase hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              Begin upgrade
+            </button>
+          </div>
+        </div>
+      )}
+    </span>
+  )
+}
+
 function Stat({ label, value, tone = 'default' }: StatProps) {
   return (
     <div className="flex flex-col">
@@ -443,7 +580,7 @@ export function HeaderStrip() {
           {/* Identity cluster */}
           <div className="flex items-stretch gap-x-6 rounded-md bg-bastion-stone/40 px-4 py-2 ring-1 ring-bastion-gold/20">
             <Stat label="Aspect" value={<AspectEditor />} tone="gold" />
-            <Stat label="Stronghold" value={`L${bastion.strongholdLevel}`} />
+            <Stat label="Stronghold" value={<StrongholdEditor />} />
           </div>
 
           {/* Economy cluster */}
