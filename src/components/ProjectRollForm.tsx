@@ -1,3 +1,4 @@
+'use client';
 import { useState, type FormEvent } from 'react'
 import type { Edge, Project } from '../types'
 import { useBastionStore } from '../store/useBastionStore'

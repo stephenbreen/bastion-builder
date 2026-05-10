@@ -1,3 +1,4 @@
+'use client';
 import { useMemo, useState } from 'react'
 import { useBastionStore } from '../store/useBastionStore'
 import { usePlayerView } from '../lib/view-mode'
