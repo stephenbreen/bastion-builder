@@ -25,3 +25,7 @@ source-rules/
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright MCP scratch + smoke-test screenshots
+.playwright-mcp/
+*.png

@@ -1,14 +1,82 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bastion-parchment: #f5ecd5;
-  --color-bastion-ink: #2a1f12;
+  /* Page (the table the board sits on) */
+  --color-bastion-night: #1a2540;
+  --color-bastion-velvet: #283358;
+  --color-bastion-shadow: #14182c;
+
+  /* Parchment surfaces (cards, panels, the "board") */
+  --color-bastion-parchment: #f3e6c0;
+  --color-bastion-parchment-warm: #ead7a8;
+  --color-bastion-vellum: #d8c186;
+  --color-bastion-stone: #2a3656;
+
+  /* Frames */
+  --color-bastion-oak: #5b4126;
+  --color-bastion-oak-deep: #3a2814;
+
+  /* Inks (dark text on parchment) */
+  --color-bastion-ink: #221a10;
+  --color-bastion-ink-soft: #5a4a30;
+  --color-bastion-ink-mute: #8a7959;
+
+  /* Heraldic accents */
+  --color-bastion-gold: #c8932c;
+  --color-bastion-gold-bright: #efc352;
+  --color-bastion-gold-deep: #7c5e1c;
+  --color-bastion-crimson: #b3242a;
+  --color-bastion-crimson-deep: #7a1418;
+  --color-bastion-azure: #2c5fa0;
+  --color-bastion-verdant: #4a8043;
+  --color-bastion-ember: #d2722a;
   --color-bastion-rust: #8a3a1c;
-  --color-bastion-gold: #c89b3c;
-  --color-bastion-shadow: #1a1410;
-  --color-bastion-stone: #2c2620;
+
+  /* Type */
   --font-display: "Cinzel", "Trajan Pro", serif;
+  --font-serif: "EB Garamond", "Iowan Old Style", "Palatino", serif;
   --font-body: "Inter", system-ui, sans-serif;
+}
+
+/* Theme variables — defaults to "heraldic". Each named theme overrides the
+   page background gradient, the banner-ribbon gradient, and any color tokens
+   whose semantic meaning shifts (e.g. bastion-night = header band). */
+:root {
+  --page-bg:
+    radial-gradient(circle at 20% 0%, rgba(40, 51, 88, 0.9) 0%, transparent 60%),
+    radial-gradient(circle at 80% 100%, rgba(123, 24, 24, 0.18) 0%, transparent 55%),
+    var(--color-bastion-shadow);
+  --banner-from: var(--color-bastion-crimson);
+  --banner-to: var(--color-bastion-crimson-deep);
+  --banner-text: var(--color-bastion-parchment);
+  --banner-border: var(--color-bastion-gold);
+}
+
+/* Parchment-light: warm aged page, dark oak header strip. */
+html[data-theme="parchment"] {
+  --color-bastion-shadow: #d4be84;
+  --color-bastion-night: #4a3220;
+  --color-bastion-velvet: #c2a55f;
+  --page-bg:
+    radial-gradient(circle at 20% 0%, rgba(255, 240, 200, 0.55) 0%, transparent 60%),
+    radial-gradient(circle at 80% 100%, rgba(123, 50, 20, 0.18) 0%, transparent 55%),
+    var(--color-bastion-shadow);
+}
+
+/* Violet: lavender twilight page, deep eggplant header, violet banners. */
+html[data-theme="violet"] {
+  --color-bastion-shadow: #d6cee8;
+  --color-bastion-night: #2d2240;
+  --color-bastion-velvet: #6b5494;
+  --color-bastion-crimson: #6b3784;
+  --color-bastion-crimson-deep: #3d1d5c;
+  --color-bastion-ember: #b075d8;
+  --page-bg:
+    radial-gradient(circle at 20% 0%, rgba(180, 160, 220, 0.7) 0%, transparent 60%),
+    radial-gradient(circle at 80% 100%, rgba(107, 55, 132, 0.25) 0%, transparent 55%),
+    var(--color-bastion-shadow);
+  --banner-from: #6b3784;
+  --banner-to: #3d1d5c;
 }
 
 html, body, #root {
@@ -17,10 +85,100 @@ html, body, #root {
 }
 
 body {
-  background-color: var(--color-bastion-shadow);
+  background: var(--page-bg);
+  background-attachment: fixed;
   color: var(--color-bastion-parchment);
   font-family: var(--font-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+/* On light themes, the body text on the page (outside parchment cards) needs
+   to read as ink rather than light cream. The header strip remains dark, so
+   it overrides locally. */
+html[data-theme="parchment"] body,
+html[data-theme="violet"] body {
+  color: var(--color-bastion-ink);
+}
+
+/* A subtle parchment texture using stacked gradients — keeps cards from
+   feeling like flat HTML rectangles without needing an image asset. */
+.parchment-surface {
+  background-color: var(--color-bastion-parchment);
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(123, 84, 28, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(90, 50, 20, 0.10) 0%, transparent 55%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(123, 84, 28, 0.025) 0 2px,
+      transparent 2px 6px
+    );
+  color: var(--color-bastion-ink);
+  font-family: var(--font-serif);
+}
+
+.parchment-surface :where(h1, h2, h3) {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+/* Wax seal style for the special-facility crest */
+.heraldic-crest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, var(--color-bastion-gold-bright), var(--color-bastion-gold-deep));
+  color: var(--color-bastion-oak-deep);
+  font-size: 0.85rem;
+  line-height: 1;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.3) inset;
+}
+
+/* Banner ribbon used for the facility-panel header and the advance-week button */
+.banner-ribbon {
+  background:
+    linear-gradient(180deg, var(--banner-from) 0%, var(--banner-to) 100%);
+  color: var(--banner-text);
+  border: 1px solid var(--banner-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 150, 0.25),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* Theme-aware muted text for labels that sit directly on the page background
+   (outside parchment cards / banner ribbons / dark header). Heraldic uses
+   parchment-tinted text on a dark page; parchment + violet flip to ink-tinted
+   so cream-on-cream doesn't disappear. */
+.text-page-muted {
+  color: rgb(243 230 192 / 0.78);
+}
+.text-page-muted-strong {
+  color: rgb(243 230 192 / 0.92);
+}
+html[data-theme="parchment"] .text-page-muted,
+html[data-theme="violet"] .text-page-muted {
+  color: rgb(34 26 16 / 0.72);
+}
+html[data-theme="parchment"] .text-page-muted-strong,
+html[data-theme="violet"] .text-page-muted-strong {
+  color: rgb(34 26 16 / 0.92);
+}
+
+/* Theme-aware section heading. Dark themes use bright gold + black drop-shadow;
+   light themes need a deeper goldenrod for sufficient contrast against cream
+   / lavender backgrounds. */
+.heading-display {
+  color: var(--color-bastion-gold-bright);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
+}
+html[data-theme="parchment"] .heading-display,
+html[data-theme="violet"] .heading-display {
+  color: var(--color-bastion-gold-deep);
+  text-shadow: 0 1px 0 rgba(255, 245, 220, 0.5);
 }

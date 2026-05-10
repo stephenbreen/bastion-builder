@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
+  followerSlotUsage,
+  followerSlotsUnlocked,
   formatGp,
   formatWeeksSinceIntrigue,
   nextRenownThreshold,
@@ -72,5 +74,41 @@ describe('formatWeeksSinceIntrigue', () => {
     expect(formatWeeksSinceIntrigue(0)).toBe('Intrigue ended this week')
     expect(formatWeeksSinceIntrigue(1)).toBe('1 week since last intrigue')
     expect(formatWeeksSinceIntrigue(7)).toBe('7 weeks since last intrigue')
+  })
+})
+
+describe('followerSlotsUnlocked', () => {
+  it.each([
+    [0, 0],
+    [2, 0],
+    [3, 1],
+    [5, 1],
+    [6, 2],
+    [9, 3],
+    [12, 4],
+    [99, 4],
+  ])('renown %i unlocks %i slots', (renown, expected) => {
+    expect(followerSlotsUnlocked(renown)).toBe(expected)
+  })
+})
+
+describe('followerSlotUsage', () => {
+  it('counts only renown-source followers as using slots', () => {
+    const followers = [
+      { source: 'renown' as const },
+      { source: 'renown' as const },
+      { source: 'stronghold' as const },
+    ]
+    expect(followerSlotUsage(followers, 6)).toEqual({ unlocked: 2, used: 2, free: 0 })
+  })
+  it('reports free slots when under-used', () => {
+    expect(followerSlotUsage([], 9)).toEqual({ unlocked: 3, used: 0, free: 3 })
+  })
+  it('floors free at 0 when over-filled (DM grace)', () => {
+    const followers = [
+      { source: 'renown' as const },
+      { source: 'renown' as const },
+    ]
+    expect(followerSlotUsage(followers, 3)).toEqual({ unlocked: 1, used: 2, free: 0 })
   })
 })

@@ -1,4 +1,5 @@
 import type { Bastion, Facility, Hireling } from '../types'
+import { emptyDomain } from '../types'
 
 export function seedManor(): Bastion {
   const facilities: Facility[] = [
@@ -12,6 +13,8 @@ export function seedManor(): Bastion {
       buildTimeDays: 20,
       orders: [],
       state: 'active',
+      floor: 'second',
+      category: 'quarters',
     },
     {
       id: 'kitchen',
@@ -22,6 +25,8 @@ export function seedManor(): Bastion {
       buildTimeDays: 45,
       orders: [],
       state: 'active',
+      floor: 'ground',
+      category: 'production',
     },
     {
       id: 'dining-hall',
@@ -32,6 +37,8 @@ export function seedManor(): Bastion {
       buildTimeDays: 45,
       orders: [],
       state: 'active',
+      floor: 'ground',
+      category: 'social',
     },
     {
       id: 'drawing-room',
@@ -42,6 +49,8 @@ export function seedManor(): Bastion {
       buildTimeDays: 45,
       orders: [],
       state: 'active',
+      floor: 'first',
+      category: 'social',
     },
     {
       id: 'servants-quarters',
@@ -52,6 +61,8 @@ export function seedManor(): Bastion {
       buildTimeDays: 45,
       orders: [],
       state: 'active',
+      floor: 'cellar',
+      category: 'quarters',
     },
     {
       id: 'armoury',
@@ -62,6 +73,8 @@ export function seedManor(): Bastion {
       buildTimeDays: 45,
       orders: [],
       state: 'active',
+      floor: 'cellar',
+      category: 'defense',
       notes: 'Un-upgraded; counts as basic until promoted to a special Smithy/Armory.',
     },
     {
@@ -76,6 +89,8 @@ export function seedManor(): Bastion {
       hirelingId: 'gardener',
       state: 'active',
       domainSkillBoosts: [{ skill: 'espionage', amount: 1 }],
+      floor: 'ground',
+      category: 'production',
     },
     {
       id: 'library',
@@ -93,6 +108,8 @@ export function seedManor(): Bastion {
         { skill: 'espionage', amount: 1 },
       ],
       notes: 'Just completed.',
+      floor: 'first',
+      category: 'knowledge',
     },
   ]
 
@@ -121,9 +138,11 @@ export function seedManor(): Bastion {
     strongholdLevel: 1,
     treasury: 0,
     inGameWeek: 1,
-    domainRenown: 0,
+    domain: emptyDomain(),
     facilities,
     hirelings,
+    followers: [],
+    projects: [],
     log: [],
   }
 }

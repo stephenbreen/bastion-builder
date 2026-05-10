@@ -34,3 +34,22 @@ export function formatWeeksSinceIntrigue(weeks: number | null): string {
   if (weeks === 0) return 'Intrigue ended this week'
   return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} since last intrigue`
 }
+
+export function followerSlotsUnlocked(domainRenown: number): number {
+  return RENOWN_THRESHOLDS.filter((t) => domainRenown >= t).length
+}
+
+export interface FollowerSlotUsage {
+  unlocked: number
+  used: number
+  free: number
+}
+
+export function followerSlotUsage(
+  followers: { source: 'renown' | 'stronghold' }[],
+  domainRenown: number,
+): FollowerSlotUsage {
+  const unlocked = followerSlotsUnlocked(domainRenown)
+  const used = followers.filter((f) => f.source === 'renown').length
+  return { unlocked, used, free: Math.max(0, unlocked - used) }
+}
