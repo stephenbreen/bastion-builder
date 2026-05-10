@@ -17,6 +17,7 @@ import {
   useBastionStore,
   type ThemeName,
 } from './store/useBastionStore'
+import { useKeyboardShortcuts } from './lib/keyboard-shortcuts'
 import { usePlayerView } from './lib/view-mode'
 
 const THEME_LABELS: Record<ThemeName, string> = {
@@ -92,11 +93,22 @@ function PlayerViewBanner() {
 export default function App() {
   const reset = useBastionStore((s) => s.reset)
   const theme = useBastionStore((s) => s.theme)
+  const advanceWeek = useBastionStore((s) => s.advanceWeek)
+  const setViewMode = useBastionStore((s) => s.setViewMode)
+  const clearSelection = useBastionStore((s) => s.clearSelection)
+  const viewMode = useBastionStore((s) => s.viewMode)
   const isPlayer = usePlayerView()
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
+
+  useKeyboardShortcuts({
+    // A only does something in DM view — players can't tick the world clock.
+    onAdvanceWeek: isPlayer ? undefined : advanceWeek,
+    onTogglePlayerView: () => setViewMode(viewMode === 'player' ? 'dm' : 'player'),
+    onClearSelection: clearSelection,
+  })
 
   const handleReset = () => {
     const ok = window.confirm(
